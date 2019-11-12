@@ -21,6 +21,7 @@ def setup_db(app, database_path=database_path):
     db.app = app
     db.init_app(app)
     db.create_all()
+    return db
 
 
 class Question(db.Model):
@@ -34,7 +35,7 @@ class Question(db.Model):
     id = Column(Integer, primary_key=True)
     question = Column(String)
     answer = Column(String)
-    category = Column(String)
+    category = Column(Integer)
     difficulty = Column(Integer)
 
     def __init__(self, question, answer, category, difficulty):
