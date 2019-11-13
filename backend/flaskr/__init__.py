@@ -72,12 +72,13 @@ def create_app(test_config=None):
         data = (
             db.session.query(Question)
             .order_by(Question.id)
-            .slice(page, (page + 1) * 10 + 1)
+            .slice((page - 1) * 10, page * 10)
             .all()
         )
+
         categories = __get_categories()
         questions = [q.format() for q in data]
-        total_questions = len(questions)
+        total_questions = db.session.query(Question).count()
         if total_questions == 0:
             abort(404)
         else:
@@ -136,11 +137,11 @@ def create_app(test_config=None):
         error = False
         try:
             # Assume that no fields are multi-valued field.
-            formdata = {k: v[0] for k, v in request.form.lists()}
-            formdata["category"] = int(formdata["category"])
-            formdata["difficulty"] = int(formdata["difficulty"])
+            data = request.json
+            data["category"] = int(data["category"])
+            data["difficulty"] = int(data["difficulty"])
 
-            question = Question(**formdata)
+            question = Question(**data)
             question.insert()
             question = question.format()
         except Exception:
@@ -167,8 +168,8 @@ def create_app(test_config=None):
 
     @app.route("/questions/search", methods=["POST"])
     def search_questions():
-
-        search_term = request.form.get("search_term", "")
+        data = request.json
+        search_term = data["search_term"]
         data = (
             db.session.query(Question)
             .filter(Question.question.ilike(f"%{search_term}%"))
@@ -195,8 +196,15 @@ def create_app(test_config=None):
     category to be shown.
     """
 
-    def __get_questions_by_category(category):
-        data = db.session.query(Question).filter(Question.category == category).all()
+    def __get_questions_by_category(category_id):
+        if category_id == 0:
+            data = db.session.query(Question).all()
+        else:
+            data = (
+                db.session.query(Question)
+                .filter(Question.category == category_id)
+                .all()
+            )
         return [q.format() for q in data]
 
     @app.route("/categories/<int:category>/questions")
@@ -225,19 +233,18 @@ def create_app(test_config=None):
 
     @app.route("/quizzes", methods=["POST"])
     def get_quizzes():
-        previous_questions = [
-            v for k, v in request.form.lists() if k == "previous_questions"
-        ]
-        previous_questions = set(previous_questions[0]) if previous_questions else {}
-        quiz_category = int(request.form.get("quiz_category", 0))
+        data = request.json
+        previous_questions = set(data["previous_questions"])
+        quiz_category_d = data.get("quiz_category", {})
+        quiz_category = int(quiz_category_d["id"])
         questions = __get_questions_by_category(quiz_category)
         questions = [q for q in questions if q["question"] not in previous_questions]
         if len(questions) > 0:
             question = random.sample(questions, 1)[0]
             response = {"success": True, "question": question}
+            return jsonify(response)
         else:
-            response = {"success": False, "question": ""}
-        return jsonify(response)
+            abort(404)
 
     """
     @TODO:
