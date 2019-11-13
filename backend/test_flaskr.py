@@ -124,10 +124,10 @@ class TriviaTestCase(unittest.TestCase):
         previous_questions = []
         for _ in range(4):
             data = {"previous_questions": previous_questions, "quiz_category": category}
-            res = self.client().post(f"/quizzes", data=data)
+            res = self.client().post("/quizzes", data=data)
             data = json.loads(res.data)
             self.assertTrue(data["question"])
-            previous_questions.append(data["question"])
+            previous_questions.append(data["question"]["question"])
         data = {"previous_questions": previous_questions, "quiz_category": category}
         res = self.client().post(f"/quizzes", data=data)
         data = json.loads(res.data)

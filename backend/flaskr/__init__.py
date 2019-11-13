@@ -40,10 +40,14 @@ def create_app(test_config=None):
     for all available categories.
     """
 
+    def __get_categories():
+        categories = db.session.query(Category.id, Category.type).all()
+        categories = {id: type.lower() for id, type in categories}
+        return categories
+
     @app.route("/categories")
     def get_categories():
-        categories = db.session.query(Category.id, Category.type).all()
-        categories = [type for id, type in categories]
+        categories = __get_categories()
         if len(categories) == 0:
             abort(404)
         else:
@@ -71,14 +75,13 @@ def create_app(test_config=None):
             .slice(page, (page + 1) * 10 + 1)
             .all()
         )
-        data = list(data)
-        if len(data) == 0:
+        categories = __get_categories()
+        questions = [q.format() for q in data]
+        total_questions = len(questions)
+        if total_questions == 0:
             abort(404)
         else:
-            questions = [q.question for q in data]
-            total_questions = len(questions)
-            categories = [q.category for q in data]
-            current_category = categories[0]  # NOTE: ok?
+            current_category = questions[0]["category"]  # NOTE: ok?
             return jsonify(
                 {
                     "success": True,
@@ -104,33 +107,16 @@ def create_app(test_config=None):
         if question is None:
             abort(404)
         try:
-            db.session.delete(question)
-            db.session.commit()
-            # just for testing
-            question = {
-                "id": question.id,
-                "question": question.question,
-                "answer": question.answer,
-                "category": question.category,
-                "difficulty": question.difficulty,
-            }
+            question.delete()
+            question = question.format()
         except Exception:
             error = True
             db.session.rollback()
         finally:
             db.session.close()
         if not error:
-            # just for testing
-            return jsonify(
-                {
-                    "success": True,
-                    "id": question["id"],
-                    "question": question["question"],
-                    "answer": question["answer"],
-                    "category": question["category"],
-                    "difficulty": question["difficulty"],
-                }
-            )
+            question["success"] = True
+            return jsonify(question)
         else:
             abort(422)
 
@@ -155,31 +141,16 @@ def create_app(test_config=None):
             formdata["difficulty"] = int(formdata["difficulty"])
 
             question = Question(**formdata)
-            db.session.add(question)
-            db.session.commit()
-            question = {
-                "id": question.id,
-                "question": question.question,
-                "answer": question.answer,
-                "category": question.category,
-                "difficulty": question.difficulty,
-            }
+            question.insert()
+            question = question.format()
         except Exception:
             error = True
             db.session.rollback()
         finally:
             db.session.close()
         if not error:
-            return jsonify(
-                {
-                    "success": True,
-                    "id": question["id"],
-                    "question": question["question"],
-                    "answer": question["answer"],
-                    "category": question["category"],
-                    "difficulty": question["difficulty"],
-                }
-            )
+            question["success"] = True
+            return jsonify(question)
         else:
             abort(422)
 
@@ -204,9 +175,9 @@ def create_app(test_config=None):
             .all()
         )
 
-        questions = [q.question for q in data]
-        total_questions = len(data)
-        current_category = data[0].category  # NOTE: ok?
+        questions = [q.format() for q in data]
+        total_questions = len(questions)
+        current_category = questions[0]["category"]  # NOTE: ok?
         response = {
             "questions": questions,
             "total_questions": total_questions,
@@ -226,7 +197,7 @@ def create_app(test_config=None):
 
     def __get_questions_by_category(category):
         data = db.session.query(Question).filter(Question.category == category).all()
-        return [q.question for q in data]
+        return [q.format() for q in data]
 
     @app.route("/categories/<int:category>/questions")
     def get_questions_by_category(category):
@@ -260,7 +231,7 @@ def create_app(test_config=None):
         previous_questions = set(previous_questions[0]) if previous_questions else {}
         quiz_category = int(request.form.get("quiz_category", 0))
         questions = __get_questions_by_category(quiz_category)
-        questions = [q for q in questions if q not in previous_questions]
+        questions = [q for q in questions if q["question"] not in previous_questions]
         if len(questions) > 0:
             question = random.sample(questions, 1)[0]
             response = {"success": True, "question": question}
