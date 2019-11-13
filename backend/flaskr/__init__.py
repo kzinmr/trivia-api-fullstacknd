@@ -23,12 +23,9 @@ def create_app(test_config=None):
 
     @app.after_request
     def add_cors_headers(response):
-        # response.headers.add('Access-Control-Allow-Origin', r)
-        # response.headers.add('Access-Control-Allow-Credentials', 'true')
         response.headers.add(
             "Access-Control-Allow-Headers", "Content-Type,Authorization,true"
         )
-        # response.headers.add('Access-Control-Allow-Headers', 'Cache-Control,X-Requested-With')
         response.headers.add(
             "Access-Control-Allow-Methods", "GET,POST,OPTIONS,PATCH,DELETE"
         )
@@ -136,7 +133,6 @@ def create_app(test_config=None):
     def create_question_submission():
         error = False
         try:
-            # Assume that no fields are multi-valued field.
             data = request.json
             data["category"] = int(data["category"])
             data["difficulty"] = int(data["difficulty"])
