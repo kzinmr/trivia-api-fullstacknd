@@ -104,7 +104,9 @@ def create_app(test_config=None):
     @app.route("/questions/<int:question_id>", methods=["DELETE"])
     def delete_questions(question_id):
         error = False
-        question = Question.query.filter(Question.id == question_id).one_or_none()
+        question = Question.query.filter(
+            Question.id == question_id
+        ).one_or_none()
         if question is None:
             abort(404)
         try:
@@ -238,7 +240,9 @@ def create_app(test_config=None):
         quiz_category_d = data.get("quiz_category", {})
         quiz_category = int(quiz_category_d["id"])
         questions = __get_questions_by_category(quiz_category)
-        questions = [q for q in questions if q["question"] not in previous_questions]
+        questions = [
+            q for q in questions if q["question"] not in previous_questions
+        ]
         if len(questions) > 0:
             question = random.sample(questions, 1)[0]
             response = {"success": True, "question": question}
@@ -254,12 +258,17 @@ def create_app(test_config=None):
 
     @app.errorhandler(404)
     def not_found(error):
-        return (jsonify({"success": False, "error": 404, "message": "Not found"}), 404)
+        return (
+            jsonify({"success": False, "error": 404, "message": "Not found"}),
+            404,
+        )
 
     @app.errorhandler(422)
     def unprocessable(error):
         return (
-            jsonify({"success": False, "error": 422, "message": "unprocessable"}),
+            jsonify(
+                {"success": False, "error": 422, "message": "unprocessable"}
+            ),
             422,
         )
 

@@ -59,9 +59,16 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(len(data["categories"]))
 
     def test_create_questions(self):
-        data = {"question": "qqq", "answer": "aaa", "category": 1, "difficulty": 1}
+        data = {
+            "question": "qqq",
+            "answer": "aaa",
+            "category": 1,
+            "difficulty": 1,
+        }
         res = self.client().post(
-            "/questions", data=json.dumps(data), content_type="application/json"
+            "/questions",
+            data=json.dumps(data),
+            content_type="application/json",
         )
         data = json.loads(res.data)
 
@@ -73,9 +80,16 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["difficulty"], 1)
 
     def test_create_questions_error_handler(self):
-        data = {"question": "qqq", "answer": "aaa", "category": "xxx", "difficulty": 1}
+        data = {
+            "question": "qqq",
+            "answer": "aaa",
+            "category": "xxx",
+            "difficulty": 1,
+        }
         res = self.client().post(
-            "/questions", data=json.dumps(data), content_type="application/json"
+            "/questions",
+            data=json.dumps(data),
+            content_type="application/json",
         )
         data = json.loads(res.data)
 
@@ -83,9 +97,16 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["error"], 422)
 
     def test_delete_questions(self):
-        data = {"question": "qqq", "answer": "aaa", "category": 1, "difficulty": 1}
+        data = {
+            "question": "qqq",
+            "answer": "aaa",
+            "category": 1,
+            "difficulty": 1,
+        }
         res = self.client().post(
-            "/questions", data=json.dumps(data), content_type="application/json"
+            "/questions",
+            data=json.dumps(data),
+            content_type="application/json",
         )
         data = json.loads(res.data)
         question_id = data["id"]
@@ -101,9 +122,16 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["difficulty"], 1)
 
     def test_delete_questions_error_handler(self):
-        data = {"question": "qqq", "answer": "aaa", "category": 1, "difficulty": 1}
+        data = {
+            "question": "qqq",
+            "answer": "aaa",
+            "category": 1,
+            "difficulty": 1,
+        }
         res = self.client().post(
-            "/questions", data=json.dumps(data), content_type="application/json"
+            "/questions",
+            data=json.dumps(data),
+            content_type="application/json",
         )
         data = json.loads(res.data)
         question_id = data["id"]
@@ -117,7 +145,9 @@ class TriviaTestCase(unittest.TestCase):
     def test_search_questions(self):
         data = {"search_term": "title"}
         res = self.client().post(
-            "/questions/search", data=json.dumps(data), content_type="application/json"
+            "/questions/search",
+            data=json.dumps(data),
+            content_type="application/json",
         )
         data = json.loads(res.data)
 
@@ -131,17 +161,25 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["total_questions"], 4)
 
     def test_get_quizzes(self):
-        category = 4
+        category = {"id": 4, "type": "hoge"}
         previous_questions = []
         for _ in range(4):
-            data = {"previous_questions": previous_questions, "quiz_category": category}
+            data = {
+                "previous_questions": previous_questions,
+                "quiz_category": category,
+            }
             res = self.client().post(
-                "/quizzes", data=json.dumps(data), content_type="application/json"
+                "/quizzes",
+                data=json.dumps(data),
+                content_type="application/json",
             )
             data = json.loads(res.data)
             self.assertTrue(data["success"])
             previous_questions.append(data["question"]["question"])
-        data = {"previous_questions": previous_questions, "quiz_category": category}
+        data = {
+            "previous_questions": previous_questions,
+            "quiz_category": category,
+        }
         res = self.client().post(
             f"/quizzes", data=json.dumps(data), content_type="application/json"
         )
