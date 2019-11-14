@@ -180,14 +180,18 @@ def create_app(test_config=None):
 
         questions = [q.format() for q in data]
         total_questions = len(questions)
-        current_category = questions[0]["category"]  # NOTE: ok?
-        response = {
-            "questions": questions,
-            "total_questions": total_questions,
-            "current_category": current_category,
-        }
+        if total_questions > 0:
+            current_category = questions[0]["category"]  # NOTE: ok?
+            response = {
+                "questions": questions,
+                "total_questions": total_questions,
+                "current_category": current_category,
+            }
 
-        return jsonify(response)
+            return jsonify(response)
+        else:
+            # TODO: render a page which says "No results are found".
+            abort(404)
 
     """
     @TODO:
@@ -213,13 +217,16 @@ def create_app(test_config=None):
     def get_questions_by_category(category):
         questions = __get_questions_by_category(category)
         total_questions = len(questions)
-        response = {
-            "questions": questions,
-            "total_questions": total_questions,
-            "current_category": category,
-        }
+        if total_questions > 0:
+            response = {
+                "questions": questions,
+                "total_questions": total_questions,
+                "current_category": category,
+            }
 
-        return jsonify(response)
+            return jsonify(response)
+        else:
+            abort(404)
 
     """
     @TODO:
